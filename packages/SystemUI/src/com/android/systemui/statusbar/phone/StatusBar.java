@@ -91,6 +91,7 @@ import android.media.session.PlaybackState;
 import android.metrics.LogMaker;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Process;
@@ -4188,6 +4189,14 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
     /**
      * Switches theme from light to dark and vice-versa.
      */
+   private boolean themeNeedsRefresh(){
+        if (mContext.getSharedPreferences("systemui_theming", 0).getString("build_fingerprint", "").equals(Build.ARROW_FINGERPRINT)){
+            return false;
+	}
+	mContext.getSharedPreferences("systemui_theming", 0).edit().putString("build_fingerprint", Build.ARROW_FINGERPRINT).commit();
+        return true;
+    }
+
     protected void updateTheme() {
         final boolean inflated = mStackScroller != null && mStatusBarWindowManager != null;
         int userThemeSetting = Settings.System.getIntForUser(mContext.getContentResolver(),
@@ -4223,7 +4232,7 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
             unfuckBlackWhiteAccent();
         }
 
-        if (isUsingDarkTheme() != useDarkTheme) {
+        if (themeNeedsRefresh() || isUsingDarkTheme() != useDarkTheme) {
                 try {
                     mOverlayManager.setEnabled("com.android.system.theme.dark.arrow",
                             useDarkTheme, mLockscreenUserManager.getCurrentUserId());
@@ -4243,7 +4252,7 @@ public class StatusBar extends SystemUI implements DemoMode, TunerService.Tunabl
             }
         }
 
-        if (isUsingBlackTheme() != useBlackTheme) {
+        if (themeNeedsRefresh() || isUsingBlackTheme() != useBlackTheme) {
                 try {
                     mOverlayManager.setEnabled("com.android.system.theme.black.arrow",
                             useBlackTheme, mLockscreenUserManager.getCurrentUserId());
